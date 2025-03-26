@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { supabase } from "./supabaseClient";
 import { ShieldCheck } from "lucide-react";
+import ChatComponent from "./components/ChatComponent";
 
 const Dashboard: React.FC = () => {
   const { session } = useAuth();
@@ -63,7 +64,7 @@ const AppContent: React.FC = () => {
         />
         <Route
           path="/dashboard"
-          element={session ? <Dashboard /> : <Navigate to="/login" />}
+          element={session ? <ChatComponent /> : <Navigate to="/login" />}
         />
         <Route
           path="/"
