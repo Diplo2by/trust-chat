@@ -1,6 +1,6 @@
 import { supabase } from '@/supabaseClient';
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -20,6 +20,7 @@ import {
     DialogFooter
 } from '@/components/ui/dialog';
 import { ShieldCheck } from 'lucide-react';
+import { info, trace } from '@tauri-apps/plugin-log'
 
 const SignUp: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -46,9 +47,9 @@ const SignUp: React.FC = () => {
                 password
             });
             if (error) {
+                info(error.message)
                 throw error;
             }
-            // Redirect to login or dashboard after successful sign up
             navigate('/login');
         } catch (err: any) {
             setError(err.message);

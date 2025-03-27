@@ -3,42 +3,42 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import "./App.css";
 import Login from "./components/Login";
 import SignUp from "@/components/SignUp";
-import { Button } from "./components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+// import { Button } from "./components/ui/button";
+// import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { supabase } from "./supabaseClient";
-import { ShieldCheck } from "lucide-react";
+// import { supabase } from "./supabaseClient";
+// import { ShieldCheck } from "lucide-react";
 import ChatComponent from "./components/ChatComponent";
 
-const Dashboard: React.FC = () => {
-  const { session } = useAuth();
+// const Dashboard: React.FC = () => {
+//   const { session } = useAuth();
 
-  return (
-    <div className="w-full h-screen flex items-center justify-center bg-white">
-      <Card className="w-full max-w-md shadow-2xl border-2 border-emerald-600">
-        <CardHeader className="text-center bg-emerald-800 text-white py-6 flex flex-col items-center">
-          <div className="flex items-center justify-center mb-2">
-            <ShieldCheck className="mr-2 text-emerald-300" size={36} />
-            <CardTitle className="text-3xl font-bold">
-              Trust Chat
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="bg-white p-6 space-y-6 text-center">
-          <h2 className="text-2xl text-emerald-700 mb-4">
-            Welcome, {session?.user.email}
-          </h2>
-          <Button
-            onClick={() => supabase.auth.signOut()}
-            className="w-full bg-emerald-700 hover:bg-emerald-600 text-white"
-          >
-            Sign Out
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
+//   return (
+//     <div className="w-full h-screen flex items-center justify-center bg-white">
+//       <Card className="w-full max-w-md shadow-2xl border-2 border-emerald-600">
+//         <CardHeader className="text-center bg-emerald-800 text-white py-6 flex flex-col items-center">
+//           <div className="flex items-center justify-center mb-2">
+//             <ShieldCheck className="mr-2 text-emerald-300" size={36} />
+//             <CardTitle className="text-3xl font-bold">
+//               Trust Chat
+//             </CardTitle>
+//           </div>
+//         </CardHeader>
+//         <CardContent className="bg-white p-6 space-y-6 text-center">
+//           <h2 className="text-2xl text-emerald-700 mb-4">
+//             Welcome, {session?.user.email}
+//           </h2>
+//           <Button
+//             onClick={() => supabase.auth.signOut()}
+//             className="w-full bg-emerald-700 hover:bg-emerald-600 text-white"
+//           >
+//             Sign Out
+//           </Button>
+//         </CardContent>
+//       </Card>
+//     </div>
+//   );
+// };
 
 const AppContent: React.FC = () => {
   const { session, loading } = useAuth();
