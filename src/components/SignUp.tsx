@@ -20,7 +20,7 @@ import {
     DialogFooter
 } from '@/components/ui/dialog';
 import { ShieldCheck } from 'lucide-react';
-import { info, trace } from '@tauri-apps/plugin-log'
+import { info } from '@tauri-apps/plugin-log'
 
 const SignUp: React.FC = () => {
     const [email, setEmail] = useState('');
