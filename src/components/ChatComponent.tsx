@@ -22,11 +22,6 @@ const ChatComponent: React.FC = () => {
         sendMessage
     } = useChatMessages(session, selectedRecipient, notificationsEnabled);
 
-    const selectedRecipientEmail = useCallback(() => {
-        if (!selectedRecipient) return null;
-        const recipient = users.find(user => user.id === selectedRecipient);
-        return recipient?.email || null;
-    }, [selectedRecipient, users]);
 
     const handleSendMessage = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { error } from '@tauri-apps/plugin-log';
+import { error, trace } from '@tauri-apps/plugin-log';
 import { sendNotification } from '@tauri-apps/plugin-notification';
 
 interface Message {
@@ -18,6 +18,43 @@ export const useChatMessages = (
 ) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(false);
+
+    // Cache for user emails to avoid repeated queries
+    const [userEmailCache, setUserEmailCache] = useState<Record<string, string>>({});
+
+    // Fetch user email by ID
+    const getUserEmail = useCallback(async (userId: string) => {
+        // Return from cache if available
+        if (userEmailCache[userId]) {
+            return userEmailCache[userId];
+        }
+
+        try {
+            const { data, error: supabaseError } = await supabase
+                .from('users')
+                .select('email')
+                .eq('id', userId)
+                .single();
+
+            if (supabaseError) {
+                trace(`Error fetching user email: ${supabaseError.message}`);
+                return null;
+            }
+
+            if (data && data.email) {
+                // Update cache
+                setUserEmailCache(prev => ({
+                    ...prev,
+                    [userId]: data.email
+                }));
+                return data.email;
+            }
+            return null;
+        } catch (err: any) {
+            error(`Error in getUserEmail: ${err.message}`);
+            return null;
+        }
+    }, [userEmailCache]);
 
     // Fetch messages for the current conversation
     const fetchMessages = useCallback(async () => {
@@ -62,18 +99,25 @@ export const useChatMessages = (
         }
     }, [session, selectedRecipient]);
 
-    const sendMessageNotification = useCallback((senderEmail: string, messageContent: string) => {
-        if (notificationsEnabled) {
-            try {
-                sendNotification({
-                    title: `New message from ${senderEmail}`,
-                    body: messageContent.length > 50 ? messageContent.substring(0, 50) + '...' : messageContent,
-                });
-            } catch (err) {
-                console.error('Error sending notification:', err);
+    // Send notification for a message
+    const sendMessageNotification = useCallback(async (senderId: string, messageContent: string) => {
+        if (!notificationsEnabled) return;
+
+        try {
+            const senderEmail = await getUserEmail(senderId);
+            if (!senderEmail) {
+                trace('Sender email not found for notification');
+                return;
             }
+
+            sendNotification({
+                title: `New message from ${senderEmail}`,
+                body: messageContent.length > 50 ? messageContent.substring(0, 50) + '...' : messageContent,
+            });
+        } catch (err: any) {
+            error(`Error sending notification: ${err.message}`);
         }
-    }, [notificationsEnabled]);
+    }, [notificationsEnabled, getUserEmail]);
 
     // Load messages when recipient changes
     useEffect(() => {
@@ -82,12 +126,12 @@ export const useChatMessages = (
         }
     }, [fetchMessages, selectedRecipient]);
 
-    // Real-time message subscription
+    // Real-time subscription for active conversation
     useEffect(() => {
         if (!session || !selectedRecipient) return;
 
-        const channel = supabase
-            .channel('messages-channel')
+        const conversationChannel = supabase
+            .channel('active-conversation')
             .on(
                 'postgres_changes',
                 {
@@ -97,6 +141,7 @@ export const useChatMessages = (
                 },
                 (payload) => {
                     const newMessage = payload.new as Message;
+
                     // Only add message if it's part of the current conversation
                     if ((newMessage.user_id === session.user.id && newMessage.recipient_id === selectedRecipient) ||
                         (newMessage.user_id === selectedRecipient && newMessage.recipient_id === session.user.id)) {
@@ -109,31 +154,46 @@ export const useChatMessages = (
                                 ? prevMessages
                                 : [...prevMessages, newMessage];
                         });
-
-                        // Handle notification if the message is from the selected recipient
-                        if (newMessage.user_id === selectedRecipient) {
-                            // You'd need to pass the recipient email here
-                            const recipientUsers = supabase
-                                .from('users')
-                                .select('email')
-                                .eq('id', newMessage.user_id)
-                                .single();
-
-                            recipientUsers.then(({ data }) => {
-                                if (data) {
-                                    sendMessageNotification(data.email, newMessage.content);
-                                }
-                            });
-                        }
                     }
                 }
             )
             .subscribe();
 
         return () => {
-            supabase.removeChannel(channel);
+            supabase.removeChannel(conversationChannel);
         };
-    }, [session, selectedRecipient, sendMessageNotification]);
+    }, [session, selectedRecipient]);
+
+    // Separate real-time subscription for global notifications
+    useEffect(() => {
+        if (!session || !notificationsEnabled) return;
+
+        const notificationChannel = supabase
+            .channel('global-notifications')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages'
+                },
+                (payload) => {
+                    const newMessage = payload.new as Message;
+
+                    // Show notification for any message directed to the current user
+                    // from any other user (not just from the selected recipient)
+                    if (newMessage.recipient_id === session.user.id &&
+                        newMessage.user_id !== session.user.id) {
+                        sendMessageNotification(newMessage.user_id, newMessage.content);
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(notificationChannel);
+        };
+    }, [session, notificationsEnabled, sendMessageNotification]);
 
     return { messages, loading, sendMessage };
 };
