@@ -6,7 +6,7 @@ import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Send, MessageCircle, Users, LogOut } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import {  trace } from '@tauri-apps/plugin-log'
+import { trace, error } from '@tauri-apps/plugin-log'
 
 interface Message {
     id: number;
@@ -40,15 +40,14 @@ const ChatComponent: React.FC = () => {
                 .from('users')  // Assumes you have a 'users' table
                 .select('id, email')
                 .neq('id', session.user.id);
-            trace("Data " + data?.toString() as string)
 
             if (error) {
                 trace(error.message)
                 throw error;
             }
             setUsers(data || []);
-        } catch (error) {
-            console.error('Error fetching users:', error);
+        } catch (err: any) {
+            error('Error fetching users:', err);
         }
     }, [session]);
 
@@ -68,8 +67,8 @@ const ChatComponent: React.FC = () => {
 
             if (error) throw error;
             setMessages(data || []);
-        } catch (error) {
-            console.error('Error fetching messages:', error);
+        } catch (err: any) {
+            error('Error fetching messages:', err);
         } finally {
             setLoading(false);
         }
@@ -149,7 +148,6 @@ const ChatComponent: React.FC = () => {
             created_at: new Date().toISOString()
         };
 
-        setMessages((prev) => [...prev, optimisticMessage]);
         setNewMessage('');
 
         try {
@@ -163,8 +161,8 @@ const ChatComponent: React.FC = () => {
                 });
 
             if (error) throw error;
-        } catch (error) {
-            console.error('Error sending message:', error);
+        } catch (err: any) {
+            error('Error sending message:', err);
             setMessages((prev) => prev.filter(msg => msg.id !== optimisticMessage.id));
         }
     }, [newMessage, session, selectedRecipient]);
@@ -195,10 +193,17 @@ const ChatComponent: React.FC = () => {
     const handleLogout = useCallback(async () => {
         try {
             await logout(); // Use the logout method from AuthContext
-        } catch (error) {
-            console.error('Logout error:', error);
+        } catch (err: any) {
+            error('Logout error:', err);
         }
     }, [logout]);
+
+    useEffect(() => {
+        for (let index = 0; index < messages.length; index++) {
+            const element = messages[index];
+            trace(element.content)
+        }
+    }, [messages])
 
     // If no user is logged in, show login prompt
     if (!session) {
@@ -210,7 +215,7 @@ const ChatComponent: React.FC = () => {
     }
 
     return (
-        <div className=" w-screen max-w-4xl mx-auto h-screen flex flex-col bg-emerald-50 p-6">
+        <div className=" w-screen  mx-auto h-screen flex flex-col bg-emerald-50 p-6">
             <Card className="flex flex-col flex-grow shadow-2xl border-2 border-emerald-600 rounded-xl overflow-hidden">
                 <CardHeader className="bg-emerald-800 text-white py-4 px-6 flex flex-row items-center justify-between">
                     <div className="flex items-center space-x-3">
