@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Send, MessageCircle, Users, LogOut } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { trace, error } from '@tauri-apps/plugin-log'
-
+import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification'
 interface Message {
     id: number;
     content: string;
@@ -30,6 +30,29 @@ const ChatComponent: React.FC = () => {
     const { session, logout } = useAuth();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const [selectedRecipientEmail, setSelectedRecipientEmail] = useState<string | null>(null);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+    useEffect(() => {
+        async function checkNotificationPermission() {
+            try {
+                // Check if notification permission is already granted
+                let permissionGranted = await isPermissionGranted();
+
+                // If not granted, request permission
+                if (!permissionGranted) {
+                    const permission = await requestPermission();
+                    permissionGranted = permission === 'granted';
+                }
+                setNotificationsEnabled(permissionGranted);
+            } catch (err: any) {
+                error('Error checking notification permissions:', err);
+            }
+        }
+
+        checkNotificationPermission();
+    }, []);
+
 
     // Fetch all users except the current user
     const fetchUsers = useCallback(async () => {
@@ -50,6 +73,15 @@ const ChatComponent: React.FC = () => {
             error('Error fetching users:', err);
         }
     }, [session]);
+
+    useEffect(() => {
+        if (selectedRecipient) {
+            const recipient = users.find(user => user.id === selectedRecipient);
+            setSelectedRecipientEmail(recipient?.email || null);
+        } else {
+            setSelectedRecipientEmail(null);
+        }
+    }, [selectedRecipient, users]);
 
     // Fetch messages for the current conversation
     const fetchMessages = useCallback(async () => {
@@ -85,6 +117,20 @@ const ChatComponent: React.FC = () => {
         }
     }, [fetchMessages, selectedRecipient]);
 
+    const sendMessageNotification = useCallback((senderEmail: string, messageContent: string) => {
+        trace('here')
+        if (notificationsEnabled) {
+            try {
+                sendNotification({
+                    title: `New message from ${senderEmail}`,
+                    body: messageContent.length > 50 ? messageContent.substring(0, 50) + '...' : messageContent,
+                });
+            } catch (error) {
+                console.error('Error sending notification:', error);
+            }
+        }
+    }, [notificationsEnabled]);
+
     // Real-time message subscription
     useEffect(() => {
         if (!session || !selectedRecipient) return;
@@ -112,6 +158,9 @@ const ChatComponent: React.FC = () => {
                                 ? prevMessages
                                 : [...prevMessages, newMessage];
                         });
+                        if (newMessage.user_id === selectedRecipient && selectedRecipientEmail) {
+                            sendMessageNotification(selectedRecipientEmail, newMessage.content)
+                        }
                     }
                 }
             )
@@ -120,7 +169,7 @@ const ChatComponent: React.FC = () => {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [session, selectedRecipient]);
+    }, [session, selectedRecipient, selectedRecipientEmail, sendMessageNotification]);
 
     // Scroll to bottom when messages change
     const scrollToBottom = useCallback(() => {
@@ -197,13 +246,6 @@ const ChatComponent: React.FC = () => {
             error('Logout error:', err);
         }
     }, [logout]);
-
-    useEffect(() => {
-        for (let index = 0; index < messages.length; index++) {
-            const element = messages[index];
-            trace(element.content)
-        }
-    }, [messages])
 
     // If no user is logged in, show login prompt
     if (!session) {
