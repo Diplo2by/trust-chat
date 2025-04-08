@@ -5,6 +5,7 @@ import Login from "./components/Login";
 import SignUp from "@/components/SignUp";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ChatComponent from "./components/ChatComponent";
+import InternetCheckModal from "./components/InternetCheckModal";
 
 const AppContent: React.FC = () => {
   const { session, loading } = useAuth();
@@ -18,26 +19,29 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/login"
-          element={!session ? <Login /> : <Navigate to="/dashboard" />}
-        />
-        <Route
-          path="/signup"
-          element={!session ? <SignUp /> : <Navigate to="/dashboard" />}
-        />
-        <Route
-          path="/dashboard"
-          element={session ? <ChatComponent /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/"
-          element={<Navigate to={session ? "/dashboard" : "/login"} />}
-        />
-      </Routes>
-    </Router>
+    <>
+      <InternetCheckModal />
+      <Router>
+        <Routes>
+          <Route
+            path="/login"
+            element={!session ? <Login /> : <Navigate to="/dashboard" />}
+          />
+          <Route
+            path="/signup"
+            element={!session ? <SignUp /> : <Navigate to="/dashboard" />}
+          />
+          <Route
+            path="/dashboard"
+            element={session ? <ChatComponent /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/"
+            element={<Navigate to={session ? "/dashboard" : "/login"} />}
+          />
+        </Routes>
+      </Router></>
+
   );
 };
 
