@@ -1,7 +1,7 @@
 [package]
 name = "trust-chat"
 version = "0.1.0"
-description = "A Tauri App"
+description = "Tauri rust based cha app"
 authors = ["you"]
 edition = "2021"
 
