@@ -30,7 +30,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({
             <SelectContent>
                 {users.map(user => (
                     <SelectItem key={user.id} value={user.id}>
-                        {user.email}
+                        {user.email.split('@')[0]}
                     </SelectItem>
                 ))}
             </SelectContent>

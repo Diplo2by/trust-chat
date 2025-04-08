@@ -1,13 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { CardContent } from '../ui/card';
-
-interface Message {
-    id: number;
-    content: string;
-    user_id: string;
-    recipient_id: string;
-    created_at: string;
-}
+import { formatTime, groupMessagesByDate } from '@/util/scripts';
+import { Message } from '@/context/ChatContext';
 
 interface MessageListProps {
     messages: Message[];
@@ -35,10 +29,12 @@ const MessageList: React.FC<MessageListProps> = ({
         return () => clearTimeout(timer);
     }, [messages]);
 
+    const messageGroups = groupMessagesByDate(messages)
+
     return (
         <CardContent
             ref={messagesContainerRef}
-            className="flex-grow overflow-y-auto p-6 space-y-3 bg-white"
+            className="flex-grow overflow-y-auto p-6 space-y-4 bg-white"
         >
             {!selectedRecipient ? (
                 <div className="text-center text-gray-500">
@@ -53,22 +49,40 @@ const MessageList: React.FC<MessageListProps> = ({
                     No messages yet. Start the conversation!
                 </div>
             ) : (
-                messages.map((message) => (
-                    <div
-                        key={message.id}
-                        className={`flex flex-col ${message.user_id === currentUserId
-                            ? 'items-end'
-                            : 'items-start'
-                            }`}
-                    >
-                        <div
-                            className={`max-w-[70%] p-3 rounded-lg mb-2 shadow-sm ${message.user_id === currentUserId
-                                ? 'bg-emerald-700 text-white'
-                                : 'bg-emerald-100 text-emerald-900'
-                                }`}
-                        >
-                            {message.content}
+                messageGroups.map((group, groupIndex) => (
+                    <div key={groupIndex} className="space-y-3">
+                        <div className="flex justify-center">
+                            <div className="bg-emerald-50 text-emerald-800 text-xs font-medium px-3 py-1 rounded-full">
+                                {group.date}
+                            </div>
                         </div>
+
+                        {group.messages.map((message) => (
+                            <div
+                                key={message.id}
+                                className={`flex flex-col ${message.user_id === currentUserId
+                                    ? 'items-end'
+                                    : 'items-start'
+                                    }`}
+                            >
+                                <div className={` flex flex-col  ${message.user_id === currentUserId ? " items-end" : ""}`}>
+                                    <div
+                                        className={` p-3 pb-3 mb-1 rounded-lg  shadow-sm ${message.user_id === currentUserId
+                                            ? 'bg-emerald-700 text-white'
+                                            : 'bg-emerald-100 text-emerald-900'
+                                            }`}
+                                    >
+                                        {message.content}
+                                    </div>
+                                    <div
+                                        className={` text-[0.7rem] text-gray-800
+                                            }`}
+                                    >
+                                        {formatTime(message.created_at)}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ))
             )}

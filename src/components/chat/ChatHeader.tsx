@@ -18,7 +18,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({ userEmail, onLogout, children }
             </div>
             <div className="flex items-center space-x-4">
                 <div className="text-sm text-emerald-200">
-                    Logged in as: {userEmail}
+                    Logged in as: {userEmail.split('@')[0]}
                 </div>
                 {children}
                 <Button
