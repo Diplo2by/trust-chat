@@ -11,8 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { useChatMessages } from '../hooks/useChatMessages';
 import { useFriends } from '../hooks/useFriends';
 import { useNotifications } from '../hooks/useNotifications';
-import { trace } from '@tauri-apps/plugin-log'
-
+import { trace } from '@tauri-apps/plugin-log';
 
 const ChatComponent: React.FC = () => {
     const { session, logout } = useAuth();
@@ -20,7 +19,6 @@ const ChatComponent: React.FC = () => {
     const [selectedRecipient, setSelectedRecipient] = useState<string | null>(null);
     const { notificationsEnabled } = useNotifications();
 
-    // Use our new useFriends hook instead of useUsers
     const {
         friends,
         friendRequests,
@@ -43,80 +41,88 @@ const ChatComponent: React.FC = () => {
         setNewMessage('');
     }, [newMessage, selectedRecipient, sendMessage]);
 
-    // Clear selected recipient when logging out
     useEffect(() => {
         if (!session) {
             setSelectedRecipient(null);
         }
     }, [session]);
 
-    // If no user is logged in, show login prompt
     if (!session) {
         return (
-            <div className="text-center text-gray-500 p-6">
-                Please log in to start messaging
+            <div className="flex items-center justify-center h-screen bg-emerald-50">
+                <Card className="p-8 shadow-lg text-center text-emerald-800">
+                    Please log in to start messaging
+                </Card>
             </div>
         );
     }
 
     return (
-        <div className="w-screen mx-auto h-screen flex flex-col bg-emerald-50 p-6">
-            <Card className="flex flex-col flex-grow shadow-2xl border-2 border-emerald-600 rounded-xl overflow-hidden">
+        <div className="w-screen h-screen flex bg-emerald-50">
+            <Card className="flex flex-col w-full h-full shadow-lg border border-emerald-200 rounded-none overflow-hidden">
                 <ChatHeader
                     userEmail={session.user.email as string}
                     onLogout={logout}
-                >
-                    <Tabs defaultValue="friends" className="w-full">
-                        <TabsList className="grid grid-cols-3">
-                            <TabsTrigger value="friends">Friends</TabsTrigger>
-                            <TabsTrigger value="requests">
-                                Requests
-                                {friendRequests.length > 0 && (
-                                    <span className="ml-2 inline-flex items-center justify-center bg-emerald-700 text-white text-xs font-bold rounded-full h-5 w-5">
-                                        {friendRequests.length}
-                                    </span>
-                                )}
-                            </TabsTrigger>
-                            <TabsTrigger value="add">Add Friend</TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="friends" className="mt-2">
-                            <FriendsList
-                                friends={friends}
-                                selectedRecipient={selectedRecipient || ''}
-                                onSelectRecipient={setSelectedRecipient}
-                                isLoading={friendsLoading}
-                            />
-                        </TabsContent>
-
-                        <TabsContent value="requests" className="mt-2">
-                            <FriendRequests
-                                requests={friendRequests}
-                                onAccept={acceptFriendRequest}
-                                onDecline={declineFriendRequest}
-                                isLoading={friendsLoading}
-                            />
-                        </TabsContent>
-
-                        <TabsContent value="add" className="mt-2">
-                            <AddFriend onSendRequest={sendFriendRequest} />
-                        </TabsContent>
-                    </Tabs>
-                </ChatHeader>
-
-                <MessageList
-                    messages={messages}
-                    loading={messagesLoading}
-                    selectedRecipient={selectedRecipient}
-                    currentUserId={session.user.id}
                 />
 
-                <MessageInput
-                    value={newMessage}
-                    onChange={setNewMessage}
-                    onSubmit={handleSendMessage}
-                    disabled={!selectedRecipient}
-                />
+                <div className="flex flex-grow h-full overflow-hidden">
+                    {/* Left sidebar */}
+                    <div className=" w-80 border-r border-emerald-200 flex flex-col bg-white">
+                        <Tabs defaultValue="friends" className="w-full ">
+                            <TabsList className="grid grid-cols-3 p-0 rounded-none border-b border-emerald-200 w-full">
+                                <TabsTrigger value="friends" className=" rounded-tl-md py-3 ">Friends</TabsTrigger>
+                                <TabsTrigger value="requests" className="rounded-none py-3">
+                                    Requests
+                                    {friendRequests.length > 0 && (
+                                        <span className="ml-2 inline-flex items-center justify-center bg-emerald-600 text-white text-xs font-medium rounded-full h-5 w-5">
+                                            {friendRequests.length}
+                                        </span>
+                                    )}
+                                </TabsTrigger>
+                                <TabsTrigger value="add" className=" rounded-tr-md py-2">Add</TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="friends" className="h-full overflow-hidden">
+                                <FriendsList
+                                    friends={friends}
+                                    selectedRecipient={selectedRecipient || ''}
+                                    onSelectRecipient={setSelectedRecipient}
+                                    isLoading={friendsLoading}
+                                />
+                            </TabsContent>
+
+                            <TabsContent value="requests" className=" h-full overflow-clip">
+                                <FriendRequests
+                                    requests={friendRequests}
+                                    onAccept={acceptFriendRequest}
+                                    onDecline={declineFriendRequest}
+                                    isLoading={friendsLoading}
+                                />
+                            </TabsContent>
+
+                            <TabsContent value="add" className="h-full overflow-hidden">
+                                <AddFriend onSendRequest={sendFriendRequest} />
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+
+                    {/* Main chat area */}
+                    <div className="flex-1 flex flex-col h-full">
+                        <MessageList
+                            messages={messages}
+                            loading={messagesLoading}
+                            selectedRecipient={selectedRecipient}
+                            currentUserId={session.user.id}
+                        />
+
+                        <MessageInput
+                            value={newMessage}
+                            onChange={setNewMessage}
+                            onSubmit={handleSendMessage}
+                            disabled={!selectedRecipient}
+                        />
+                    </div>
+                </div>
             </Card>
         </div>
     );

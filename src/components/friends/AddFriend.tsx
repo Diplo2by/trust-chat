@@ -41,37 +41,37 @@ const AddFriend: React.FC<AddFriendProps> = ({ onSendRequest }) => {
     };
 
     return (
-        <div className="p-4">
+        <div className="p-4 h-full bg-white">
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex space-x-2">
                     <div className="relative flex-1">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-emerald-500" />
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-emerald-600" />
                         <Input
                             type="email"
                             placeholder="Friend's email address"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="pl-8 placeholder:text-white"
+                            className="pl-10 border-emerald-200 focus:border-emerald-500"
                             disabled={isLoading}
                         />
                     </div>
                     <Button
                         type="submit"
-                        className="bg-emerald-600 disabled:bg-black hover:scale-105 hover:bg-emerald-500"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
                         disabled={!email.trim() || isLoading}
                     >
-                        {isLoading ? 'Sending...' : 'Send Request'}
+                        {isLoading ? 'Sending...' : 'Send'}
                     </Button>
                 </div>
 
                 {status.type && (
-                    <div className={`text-sm p-2 rounded ${status.type === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                    <div className={`text-sm p-3 rounded ${status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
                         }`}>
                         {status.message}
                     </div>
                 )}
 
-                <div className="text-xs text-emerald-50">
+                <div className="text-sm text-emerald-700">
                     Send a friend request to start chatting. They'll need to accept your request.
                 </div>
             </form>

@@ -20,33 +20,35 @@ const FriendsList: React.FC<FriendsListProps> = ({
     isLoading
 }) => {
     if (isLoading) {
-        return <div className="text-center p-4 text-emerald-700">Loading friends...</div>;
+        return <div className="flex items-center justify-center h-full py-8 text-emerald-600">Loading friends...</div>;
     }
 
     if (friends.length === 0) {
         return (
-            <div className="text-center p-4 text-emerald-50">
+            <div className="flex items-center justify-center h-full py-8 text-emerald-600">
                 You don't have any friends yet. Add some friends to start chatting!
             </div>
         );
     }
 
     return (
-        <div className="max-h-64 overflow-y-auto">
+        <div className="h-full overflow-y-auto bg-white">
             {friends.map((friend) => (
                 <div
                     key={friend.id}
-                    className={`flex items-center p-3 cursor-pointer hover:bg-emerald-100 ${selectedRecipient === friend.id ? 'bg-emerald-100' : ''
+                    className={`flex items-center p-4 cursor-pointer transition-colors ${selectedRecipient === friend.id
+                            ? 'bg-emerald-100 border-l-4 border-emerald-600'
+                            : 'hover:bg-emerald-50 border-l-4 border-transparent'
                         }`}
                     onClick={() => onSelectRecipient(friend.id)}
                 >
-                    <Avatar className="h-8 w-8 mr-2">
+                    <Avatar className="h-10 w-10 mr-3">
                         <AvatarFallback className="bg-emerald-200 text-emerald-800">
                             {friend.email[0].toUpperCase()}
                         </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                        <p className="font-medium truncate text-emerald-900">
                             {friend.email}
                         </p>
                     </div>

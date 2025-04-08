@@ -19,21 +19,21 @@ const MessageInput: React.FC<MessageInputProps> = ({
     return (
         <form
             onSubmit={onSubmit}
-            className="p-6 bg-emerald-50 border-t border-emerald-200 flex items-center space-x-4"
+            className="p-4 bg-white border-t border-emerald-200 flex items-center space-x-3"
         >
             <Input
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                placeholder="Type your message..."
+                placeholder={disabled ? "Select a friend to start messaging..." : "Type your message..."}
                 disabled={disabled}
-                className="flex-grow border-emerald-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all duration-300"
+                className="flex-grow border-emerald-200 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-300"
             />
             <Button
                 type="submit"
                 disabled={value.trim() === '' || disabled}
-                className="bg-emerald-700 text-white hover:bg-emerald-600 transition-colors duration-300 px-4"
+                className="bg-emerald-600 text-white hover:bg-emerald-700"
             >
-                <Send size={20} className="mr-2" /> Send
+                <Send size={18} className="mr-2" /> Send
             </Button>
         </form>
     );
