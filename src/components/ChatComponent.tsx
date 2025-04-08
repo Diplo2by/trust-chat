@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { useChatMessages } from '../hooks/useChatMessages';
 import { useFriends } from '../hooks/useFriends';
 import { useNotifications } from '../hooks/useNotifications';
-import { trace } from '@tauri-apps/plugin-log';
 
 const ChatComponent: React.FC = () => {
     const { session, logout } = useAuth();
