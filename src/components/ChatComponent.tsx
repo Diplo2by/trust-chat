@@ -58,7 +58,7 @@ const ChatComponent: React.FC = () => {
 
     return (
         <div className="w-screen h-screen flex bg-emerald-50">
-            <Card className="flex flex-col w-full h-full shadow-lg border border-emerald-200 rounded-none overflow-hidden">
+            <Card className="py-0 gap-1 flex flex-col w-full h-full justify-start shadow-lg border border-emerald-200 rounded-none overflow-hidden">
                 <ChatHeader
                     userEmail={session.user.email as string}
                     onLogout={logout}
